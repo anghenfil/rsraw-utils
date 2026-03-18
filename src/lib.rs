@@ -5,8 +5,9 @@ use tiff::TiffError;
 use rsraw_sys::ushort;
 use tiff::encoder::{colortype, TiffEncoder};
 use image::{ImageBuffer, Rgb};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum BlendingMode{
     /// Add the pixel values of all images together.
     Additive,
