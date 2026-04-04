@@ -34,7 +34,7 @@ pub fn blend_raw_images(mut raw_imgs: Vec<RawImage>, mode: BlendingMode) -> Resu
     }
 
     blend_pixels(main_raw_pixels, pixels, &mode);
-    update_metadata(&mut main_image, &mode, (raw_imgs.len()+1) as u32);
+    update_metadata(&mut main_image, Some(&mode), (raw_imgs.len()+1) as u32);
     Ok(main_image)
 }
 
@@ -88,7 +88,7 @@ pub fn blend_pixels(main_image_pixels: &mut [ushort], other_pixels: Vec<&[ushort
     }
 }
 
-pub fn update_metadata(image: &mut RawImage, mode: &BlendingMode, num_images: u32){
+pub fn update_metadata(image: &mut RawImage, mode: Option<&BlendingMode>, num_images: u32){
     let imgdata_mut = image.as_mut();
     // Normalisierung der WB-Multiplikatoren.
     let green_avg = (imgdata_mut.color.cam_mul[1] + imgdata_mut.color.cam_mul[3]) / 2.0;
@@ -98,7 +98,7 @@ pub fn update_metadata(image: &mut RawImage, mode: &BlendingMode, num_images: u3
         }
     }
 
-    if let BlendingMode::Additive = mode {
+    if let Some(BlendingMode::Additive) = mode {
         imgdata_mut.color.maximum *= num_images;
         imgdata_mut.color.data_maximum *= num_images;
         imgdata_mut.color.black *= num_images;

@@ -92,6 +92,9 @@ pub enum OutputFormat{
 }
 
 pub fn convert_raw(mut raw_image: RawImage, format: OutputFormat, destination: &Path) -> Result<(), RsRawUtilsError>{
+    raw_image.unpack().map_err(|e| RsRawUtilsError::CouldntUnpack(e.to_string()))?;
+    blending::update_metadata(&mut raw_image, None, 1);
+
     match format{
         OutputFormat::TIFF => {
             let tiff_processed = raw_image.process::<16>().map_err(|e| RsRawUtilsError::CouldntProcess(e.to_string()))?;
@@ -189,5 +192,28 @@ mod tests {
         convert_raw(res, OutputFormat::JPEG, output_path).unwrap();
         assert!(output_path.exists());
         std::fs::remove_file(output_path).unwrap();
+    }
+
+    #[test]
+    fn test_convert_raw_to_tiff_and_jpeg_no_blending() {
+        // Test TIFF conversion
+        let mut raw1 = File::open("test1.ARW").unwrap();
+        let mut buf = vec![];
+        raw1.read_to_end(&mut buf).unwrap();
+        let rawfile1 = RawImage::open(&buf).unwrap();
+
+        let tiff_path = Path::new("test_convert.tiff");
+        convert_raw(rawfile1, OutputFormat::TIFF, tiff_path).expect("Failed to convert raw to TIFF");
+        assert!(tiff_path.exists());
+
+        // Test JPEG conversion (loading raw again as convert_raw takes ownership)
+        let mut raw2 = File::open("test1.ARW").unwrap();
+        let mut buf2 = vec![];
+        raw2.read_to_end(&mut buf2).unwrap();
+        let rawfile2 = RawImage::open(&buf2).unwrap();
+
+        let jpeg_path = Path::new("test_convert.jpg");
+        convert_raw(rawfile2, OutputFormat::JPEG, jpeg_path).expect("Failed to convert raw to JPEG");
+        assert!(jpeg_path.exists());
     }
 }
