@@ -23,13 +23,11 @@ pub fn blend_raw_images(mut raw_imgs: Vec<RawImage>, mode: BlendingMode) -> Resu
     }
 
     let mut main_image = raw_imgs.pop().unwrap();
-    main_image.unpack().map_err(|e| RsRawUtilsError::CouldntUnpack(e.to_string()))?;
 
     let main_raw_pixels = raw_pixels_mut(&mut main_image)?;
     let mut pixels = vec![];
 
     for img in raw_imgs.iter_mut() {
-        img.unpack().map_err(|e| RsRawUtilsError::CouldntUnpack(e.to_string()))?;
         pixels.push(raw_pixels(img)?);
     }
 

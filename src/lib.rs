@@ -92,7 +92,6 @@ pub enum OutputFormat{
 }
 
 pub fn convert_raw(mut raw_image: RawImage, format: OutputFormat, destination: &Path) -> Result<(), RsRawUtilsError>{
-    raw_image.unpack().map_err(|e| RsRawUtilsError::CouldntUnpack(e.to_string()))?;
     blending::update_metadata(&mut raw_image, None, 1);
 
     match format{
@@ -137,19 +136,22 @@ mod tests {
         let mut raw1 = File::open("test1.ARW").unwrap();
         let mut buf = vec![];
         raw1.read_to_end(&mut buf).unwrap();
-        let rawfile1 = RawImage::open(&buf);
+        let mut rawfile1 = RawImage::open(&buf).unwrap();
+        rawfile1.unpack().unwrap();
 
         let mut raw2 = File::open("test2.ARW").unwrap();
         let mut buf2 = vec![];
         raw2.read_to_end(&mut buf2).unwrap();
-        let rawfile2 = RawImage::open(&buf2);
+        let mut rawfile2 = RawImage::open(&buf2).unwrap();
+        rawfile2.unpack().unwrap();
 
         let mut raw3 = File::open("test3.ARW").unwrap();
         let mut buf3 = vec![];
         raw3.read_to_end(&mut buf3).unwrap();
-        let rawfile3 = RawImage::open(&buf3);
+        let mut rawfile3 = RawImage::open(&buf3).unwrap();
+        rawfile3.unpack().unwrap();
 
-        let res = blend_raw_images(vec![rawfile1.unwrap(), rawfile2.unwrap(), rawfile3.unwrap()], BlendingMode::Average).unwrap();
+        let res = blend_raw_images(vec![rawfile1, rawfile2, rawfile3], BlendingMode::Average).unwrap();
         let output_path = Path::new("test_output.tiff");
         convert_raw(res, OutputFormat::TIFF, output_path).unwrap();
         assert!(output_path.exists());
@@ -161,14 +163,16 @@ mod tests {
         let mut raw1 = File::open("test1.ARW").unwrap();
         let mut buf = vec![];
         raw1.read_to_end(&mut buf).unwrap();
-        let rawfile1 = RawImage::open(&buf);
+        let mut rawfile1 = RawImage::open(&buf).unwrap();
+        rawfile1.unpack().unwrap();
 
         let mut raw2 = File::open("test2.ARW").unwrap();
         let mut buf2 = vec![];
         raw2.read_to_end(&mut buf2).unwrap();
-        let rawfile2 = RawImage::open(&buf2);
+        let mut rawfile2 = RawImage::open(&buf2).unwrap();
+        rawfile2.unpack().unwrap();
 
-        let res = blend_raw_images(vec![rawfile1.unwrap(), rawfile2.unwrap()], BlendingMode::PreferChanged).unwrap();
+        let res = blend_raw_images(vec![rawfile1, rawfile2], BlendingMode::PreferChanged).unwrap();
         let output_path = Path::new("test_output_with_preview.tiff");
         convert_raw(res, OutputFormat::TIFF, output_path).unwrap();
         assert!(output_path.exists());
@@ -180,14 +184,16 @@ mod tests {
         let mut raw1 = File::open("test1.ARW").unwrap();
         let mut buf = vec![];
         raw1.read_to_end(&mut buf).unwrap();
-        let rawfile1 = RawImage::open(&buf);
+        let mut rawfile1 = RawImage::open(&buf).unwrap();
+        rawfile1.unpack().unwrap();
 
         let mut raw2 = File::open("test2.ARW").unwrap();
         let mut buf2 = vec![];
         raw2.read_to_end(&mut buf2).unwrap();
-        let rawfile2 = RawImage::open(&buf2);
+        let mut rawfile2 = RawImage::open(&buf2).unwrap();
+        rawfile2.unpack().unwrap();
 
-        let res = blend_raw_images(vec![rawfile1.unwrap(), rawfile2.unwrap()], BlendingMode::Average).unwrap();
+        let res = blend_raw_images(vec![rawfile1, rawfile2], BlendingMode::Average).unwrap();
         let output_path = Path::new("test_preview.jpg");
         convert_raw(res, OutputFormat::JPEG, output_path).unwrap();
         assert!(output_path.exists());
@@ -197,20 +203,22 @@ mod tests {
     #[test]
     fn test_convert_raw_to_tiff_and_jpeg_no_blending() {
         // Test TIFF conversion
-        let mut raw1 = File::open("test1.ARW").unwrap();
+        let mut raw1 = File::open("debug.arw").unwrap();
         let mut buf = vec![];
         raw1.read_to_end(&mut buf).unwrap();
-        let rawfile1 = RawImage::open(&buf).unwrap();
+        let mut rawfile1 = RawImage::open(&buf).unwrap();
+        rawfile1.unpack().unwrap();
 
         let tiff_path = Path::new("test_convert.tiff");
         convert_raw(rawfile1, OutputFormat::TIFF, tiff_path).expect("Failed to convert raw to TIFF");
         assert!(tiff_path.exists());
 
         // Test JPEG conversion (loading raw again as convert_raw takes ownership)
-        let mut raw2 = File::open("test1.ARW").unwrap();
+        let mut raw2 = File::open("debug.arw").unwrap();
         let mut buf2 = vec![];
         raw2.read_to_end(&mut buf2).unwrap();
-        let rawfile2 = RawImage::open(&buf2).unwrap();
+        let mut rawfile2 = RawImage::open(&buf2).unwrap();
+        rawfile2.unpack().unwrap();
 
         let jpeg_path = Path::new("test_convert.jpg");
         convert_raw(rawfile2, OutputFormat::JPEG, jpeg_path).expect("Failed to convert raw to JPEG");
