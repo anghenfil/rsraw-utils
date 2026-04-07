@@ -172,7 +172,7 @@ mod tests {
         let mut rawfile2 = RawImage::open(&buf2).unwrap();
         rawfile2.unpack().unwrap();
 
-        let res = blend_raw_images(vec![rawfile1, rawfile2], BlendingMode::PreferChanged).unwrap();
+        let res = blend_raw_images(vec![rawfile1, rawfile2], BlendingMode::Average).unwrap();
         let output_path = Path::new("test_output_with_preview.tiff");
         convert_raw(res, OutputFormat::TIFF, output_path).unwrap();
         assert!(output_path.exists());
@@ -197,7 +197,6 @@ mod tests {
         let output_path = Path::new("test_preview.jpg");
         convert_raw(res, OutputFormat::JPEG, output_path).unwrap();
         assert!(output_path.exists());
-        std::fs::remove_file(output_path).unwrap();
     }
 
     #[test]

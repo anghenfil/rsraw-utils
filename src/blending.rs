@@ -46,11 +46,11 @@ pub fn blend_pixels(main_image_pixels: &mut [ushort], other_pixels: Vec<&[ushort
                 }
             }
             BlendingMode::Average => {
-                let mut sum = 0;
+                let mut sum = *pixel as u32;
                 for n in 0..other_pixels.len(){
-                    sum += other_pixels[n][i];
+                    sum += other_pixels[n][i] as u32;
                 }
-                *pixel = (sum / other_pixels.len() as ushort) as ushort;
+                *pixel = (sum / (other_pixels.len() + 1) as u32) as ushort;
             }
             BlendingMode::Bright => {
                 for n in 0..other_pixels.len(){
@@ -67,15 +67,15 @@ pub fn blend_pixels(main_image_pixels: &mut [ushort], other_pixels: Vec<&[ushort
                 }
             },
             BlendingMode::PreferChanged => {
-                let mut pixel_sum = pixel.clone();
+                let mut pixel_sum = *pixel as u32;
                 for n in 0..other_pixels.len(){
-                    pixel_sum += other_pixels[n][i];
+                    pixel_sum += other_pixels[n][i] as u32;
                 }
-                let pixel_sum = pixel_sum / other_pixels.len() as ushort;
+                let avg = (pixel_sum / (other_pixels.len() + 1) as u32) as ushort;
 
-                let mut biggest_deviation = pixel_sum.abs_diff(*pixel);
+                let mut biggest_deviation = avg.abs_diff(*pixel);
                 for n in 0..other_pixels.len(){
-                    let deviation = pixel_sum.abs_diff(other_pixels[n][i]);
+                    let deviation = avg.abs_diff(other_pixels[n][i]);
                     if deviation > biggest_deviation{
                         biggest_deviation = deviation;
                         *pixel = other_pixels[n][i];
