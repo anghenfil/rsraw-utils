@@ -24,19 +24,19 @@ pub fn blend_raw_images(mut raw_imgs: Vec<RawImage>, mode: BlendingMode) -> Resu
 
     let mut main_image = raw_imgs.pop().unwrap();
 
+    let max_val = main_image.as_ref().color.maximum as ushort;
     let main_raw_pixels = raw_pixels_mut(&mut main_image)?;
     let mut pixels = vec![];
 
     for img in raw_imgs.iter_mut() {
         pixels.push(raw_pixels(img)?);
     }
-
-    blend_pixels(main_raw_pixels, pixels, &mode);
+    blend_pixels(main_raw_pixels, pixels, &mode, max_val);
     update_metadata(&mut main_image, Some(&mode), (raw_imgs.len()+1) as u32);
     Ok(main_image)
 }
 
-pub fn blend_pixels(main_image_pixels: &mut [ushort], other_pixels: Vec<&[ushort]>, mode: &BlendingMode){
+pub fn blend_pixels(main_image_pixels: &mut [ushort], other_pixels: Vec<&[ushort]>, mode: &BlendingMode, max_val: ushort){
     for i in 0..main_image_pixels.len() {
         let pixel = &mut main_image_pixels[i];
         match mode{
@@ -47,10 +47,15 @@ pub fn blend_pixels(main_image_pixels: &mut [ushort], other_pixels: Vec<&[ushort
             }
             BlendingMode::Average => {
                 let mut sum = *pixel as u32;
+                let mut any_clipped = *pixel >= max_val;
                 for n in 0..other_pixels.len(){
                     sum += other_pixels[n][i] as u32;
+                    if other_pixels[n][i] >= max_val {
+                        any_clipped = true;
+                    }
                 }
-                *pixel = (sum / (other_pixels.len() + 1) as u32) as ushort;
+                let avg = (sum / (other_pixels.len() + 1) as u32) as ushort;
+                *pixel = if any_clipped { max_val } else { avg };
             }
             BlendingMode::Bright => {
                 for n in 0..other_pixels.len(){
