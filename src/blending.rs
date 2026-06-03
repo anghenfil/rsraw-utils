@@ -1,3 +1,4 @@
+use clap::builder::PossibleValue;
 use rsraw::RawImage;
 use rsraw_sys::ushort;
 use serde::{Deserialize, Serialize};
@@ -16,6 +17,24 @@ pub enum BlendingMode{
     /// Prefers the pixel values with the highest deviation from the average.
     PreferChanged
 }
+
+#[cfg(feature = "clap")]
+impl clap::ValueEnum for BlendingMode{
+    fn value_variants<'a>() -> &'a [Self] {
+        &[Self::Additive, Self::Average, Self::Bright, Self::Dark, Self::PreferChanged]
+    }
+
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        match self {
+            BlendingMode::Additive => Some(PossibleValue::new("additive")),
+            BlendingMode::Average => Some(PossibleValue::new("average")),
+            BlendingMode::Bright => Some(PossibleValue::new("bright")),
+            BlendingMode::Dark => Some(PossibleValue::new("dark")),
+            BlendingMode::PreferChanged => Some(PossibleValue::new("prefer-changed")),
+        }
+    }
+}
+
 
 pub fn blend_raw_images(mut raw_imgs: Vec<RawImage>, mode: BlendingMode) -> Result<RawImage, RsRawUtilsError> {
     if raw_imgs.len() < 2 {
