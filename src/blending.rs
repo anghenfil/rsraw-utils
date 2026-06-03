@@ -1,3 +1,4 @@
+#[cfg(feature = "clap")]
 use clap::builder::PossibleValue;
 use rsraw::RawImage;
 use rsraw_sys::ushort;
