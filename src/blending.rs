@@ -3,7 +3,7 @@ use rsraw_sys::ushort;
 use serde::{Deserialize, Serialize};
 use crate::{raw_pixels, raw_pixels_mut, RsRawUtilsError};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub enum BlendingMode{
     /// Add the pixel values of all images together.
     Additive,
